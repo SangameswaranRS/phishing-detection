@@ -15,7 +15,7 @@ def train_and_export_model():
     dataset = arff.load(open('trainingDatasetUCL.arff', 'r'))
     data = np.array(dataset['data'])
     print('[INFO] Load Complete')
-    data = data[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 30]]
+    data = data[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 22, 30]]
     for feature in dataset['attributes']:
         print('      [.]' + str(feature[0]))
     X, Y = data[:, :-1], data[:, -1]
@@ -172,22 +172,14 @@ def site_processing(siteURL):
         link_src = link.get('src')
         print("         [URL]" + str(link_src))
         try:
-            if link_src.index('/') == 0:
+            currentDomainInfo = get_tld(link_src, as_object=True)
+            currentFld = currentDomainInfo.fld
+            if globalDomainOnly == currentFld:
                 legitLinks = legitLinks + 1
             else:
-                print('[DEBUG] Getting Domain Info')
-                currentDomainInfo = get_tld(link_src, as_object=True)
-                currentDomain = str(currentDomainInfo.subdomain) + "." + str(currentDomainInfo.fld)
-                currentFld = currentDomainInfo.fld
-                # print('-----------')
-                # print(globalDomainOnly, currentFld)
-                # print('-----------')
-                if globalDomainOnly == currentFld:
-                    legitLinks = legitLinks + 1
-                else:
-                    suspiciousLinks = suspiciousLinks + 1
+                suspiciousLinks = suspiciousLinks + 1
         except Exception as e1:
-            print(e1)
+            print('[EXCEPTION] ' + str(e1))
             legitLinks = legitLinks + 1
     print(legitLinks, suspiciousLinks)
     totallinks = legitLinks + suspiciousLinks
@@ -210,17 +202,14 @@ def site_processing(siteURL):
         link_src = link.get("href")
         print("         [URL]" + str(link_src))
         try:
-            if link_src.index('#') == 0:
+            currentDomainInfo = get_tld(link_src, as_object=True)
+            currentDomain = str(currentDomainInfo.subdomain) + "." + str(currentDomainInfo.fld)
+            currentFld = currentDomainInfo.fld
+            print("[DEBUG] -- " + str(currentDomain) + "," + str(domainOnly))
+            if currentFld == globalDomainOnly:
                 legitALinks = legitALinks + 1
             else:
-                currentDomainInfo = get_tld(link_src, as_object=True)
-                currentDomain = str(currentDomainInfo.subdomain) + "." + str(currentDomainInfo.fld)
-                currentFld = currentDomainInfo.fld
-                print("[DEBUG] -- " + str(currentDomain) + "," + str(domainOnly))
-                if currentFld == globalDomainOnly:
-                    legitALinks = legitALinks + 1
-                else:
-                    suspiciousALinks = suspiciousALinks + 1
+                suspiciousALinks = suspiciousALinks + 1
         except Exception:
             legitALinks = legitALinks + 1
     print(legitALinks, suspiciousALinks)
@@ -236,7 +225,16 @@ def site_processing(siteURL):
     else:
         C14 = 1
     print('[DEBUG] Condition 14 Anchor Tag Request URL: ' + str(C14))
-    inputList = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14]
+    # Condition 23 Having iframe
+    iframeCount = 0
+    for frame in soup.findAll("iframe"):
+        iframeCount =iframeCount + 1
+    if iframeCount > 0:
+        C23 = 1
+    else:
+        C23 = -1
+    print('[DEBUG] Condition 23 Iframe Presence: '+ str(C23))
+    inputList = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C23]
     return inputList
 
 
