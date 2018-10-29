@@ -1,4 +1,4 @@
-# Created by Sangameswaran R S #
+# Written by Sangameswaran R S #
 
 import arff
 import numpy as np
